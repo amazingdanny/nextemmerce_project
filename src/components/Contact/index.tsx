@@ -1,7 +1,33 @@
+'use client'
+import { useState } from "react";
 import React from "react";
 import Breadcrumb from "../Common/Breadcrumb";
+import TextField from "../UI/TextField";
+import TextArea from "../UI/TextArea";
+import { handleContactForm } from "@/app/contact/actions";
 
 const Contact = () => {
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [success, setSuccess] = useState(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(e.currentTarget);
+    const result = await handleContactForm(formData);
+
+    if (!result.success) {
+      console.log("Validation failed:", result.errors);
+      setErrors(result.errors);
+      setSuccess(false);
+    } else {
+      console.log("Form submitted successfully:", result.data);
+      setErrors({});
+      setSuccess(true);
+      form.reset();
+    }
+  }
+
   return (
     <>
       <Breadcrumb title={"Contact"} pages={["contact"]} />
@@ -87,79 +113,25 @@ const Contact = () => {
             </div>
 
             <div className="xl:max-w-[770px] w-full bg-white rounded-xl shadow-1 p-4 sm:p-7.5 xl:p-10">
-              <form>
+              <form onSubmit={onSubmit}>
                 <div className="flex flex-col lg:flex-row gap-5 sm:gap-8 mb-5">
-                  <div className="w-full">
-                    <label htmlFor="firstName" className="block mb-2.5">
-                      First Name <span className="text-red">*</span>
-                    </label>
-
-                    <input
-                      type="text"
-                      name="firstName"
-                      id="firstName"
-                      placeholder="Jhon"
-                      className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-2.5 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                    />
-                  </div>
-
-                  <div className="w-full">
-                    <label htmlFor="lastName" className="block mb-2.5">
-                      Last Name <span className="text-red">*</span>
-                    </label>
-
-                    <input
-                      type="text"
-                      name="lastName"
-                      id="lastName"
-                      placeholder="Deo"
-                      className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-2.5 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                    />
-                  </div>
+                  <TextField type = {"text"} name = {"firstName"} id = {"firstName"} placeholder = {"John"} labelName = {"First Name"} labelClassName = {"block mb-2.5"}/>
+                  {errors.firstName && <p className="text-red">{errors.firstName[0]}</p>}
+                  <TextField type = {"text"} name = {"lastName"} id = {"firstName"} placeholder = {"Doe"} labelName = {"Last Name"} labelClassName = {"block mb-2.5"}/>
+                  {errors.lastName && <p className="text-red">{errors.lastName[0]}</p>}
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-5 sm:gap-8 mb-5">
-                  <div className="w-full">
-                    <label htmlFor="subject" className="block mb-2.5">
-                      Subject
-                    </label>
-
-                    <input
-                      type="text"
-                      name="subject"
-                      id="subject"
-                      placeholder="Type your subject"
-                      className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-2.5 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                    />
-                  </div>
-
-                  <div className="w-full">
-                    <label htmlFor="phone" className="block mb-2.5">
-                      Phone
-                    </label>
-
-                    <input
-                      type="text"
-                      name="phone"
-                      id="phone"
-                      placeholder="Enter your phone"
-                      className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-2.5 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                    />
-                  </div>
+                  <TextField type = {"text"} name = {"subject"} id = {"subject"} placeholder = {"Type your subject"} labelName = {"Subject"} labelClassName = {"block mb-2.5"}/>
+                  {errors.subject && <p className="text-red">{errors.subject[0]}</p>}
+                  <TextField type = {"text"} name = {"phone"} id = {"phone"} placeholder = {"Enter your phone"} labelName = {"Phone"} labelClassName = {"block mb-2.5"}/>
+                  {errors.phone && <p className="text-red">{errors.phone[0]}</p>}
                 </div>
 
                 <div className="mb-7.5">
-                  <label htmlFor="message" className="block mb-2.5">
-                    Message
-                  </label>
+                  <TextArea name = "message" id = "message" placeholder="Type your message" labelClassName="block mb-2.5" labelName="Message" rows={5}/>
+                  {errors.message && <p className="text-red">{errors.message[0]}</p>}
 
-                  <textarea
-                    name="message"
-                    id="message"
-                    rows={5}
-                    placeholder="Type your message"
-                    className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full p-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  ></textarea>
                 </div>
 
                 <button

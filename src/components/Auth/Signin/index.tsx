@@ -1,8 +1,44 @@
+'use client';
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React from "react";
+import { useState } from "react";
+import TextField from "@/components/UI/TextField";
+import { useRouter } from "next/navigation";
+
+
 
 const Signin = () => {
+  const router = useRouter();
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [success, setSuccess] = useState(false);
+  async function OnSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email");
+    const password = formData.get("password");
+  
+    const res = await fetch("/api/signIn", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+  
+    const result = await res.json();
+    if (!result.success) {
+      setErrors(result.errors);
+      setSuccess(false);
+    } else {
+      setErrors({});
+      setSuccess(true);
+      form.reset();
+      router.push("/my-account"); 
+    }
+  }
+
   return (
     <>
       <Breadcrumb title={"Signin"} pages={["Signin"]} />
@@ -17,35 +53,11 @@ const Signin = () => {
             </div>
 
             <div>
-              <form>
-                <div className="mb-5">
-                  <label htmlFor="email" className="block mb-2.5">
-                    Email
-                  </label>
-
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    placeholder="Enter your email"
-                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  />
-                </div>
-
-                <div className="mb-5">
-                  <label htmlFor="password" className="block mb-2.5">
-                    Password
-                  </label>
-
-                  <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    placeholder="Enter your password"
-                    autoComplete="on"
-                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  />
-                </div>
+              <form onSubmit = {OnSubmit}>
+                  <TextField type = "email" name = "email" id = "email" placeholder="Enter your email" labelClassName="block mb-2.5" labelName = "Email"/>
+                  {errors.email && <p className="text-red">{errors.email[0]}</p>}
+                  <TextField type = "password" name="password" id="passsword" placeholder="Enter your password" autoComplete="on"/>
+                  {errors.password && <p className="text-red">{errors.password[0]}</p>}
 
                 <button
                   type="submit"

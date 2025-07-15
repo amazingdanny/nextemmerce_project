@@ -1,8 +1,49 @@
+'use client'
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import TextField from "@/components/UI/TextField";
 
 const Signup = () => {
+  const router = useRouter();
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [success, setSuccess] = useState(false);
+  async function OnSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const reTypePassword = formData.get("re-type-password");
+
+    if (password !== reTypePassword) {
+      setErrors({ password: ["Passwords do not match"] });
+      setSuccess(false);
+      return;
+    }
+
+    const res = await fetch("/api/signUp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const result = await res.json();
+    if (!result.success) {
+      setErrors(result.errors);
+      setSuccess(false);
+    } else {
+      setErrors({});
+      setSuccess(true);
+      form.reset();
+      router.push("/signIn");
+    }
+  }
   return (
     <>
       <Breadcrumb title={"Signup"} pages={["Signup"]} />
@@ -87,65 +128,15 @@ const Signup = () => {
             </span>
 
             <div className="mt-5.5">
-              <form>
-                <div className="mb-5">
-                  <label htmlFor="name" className="block mb-2.5">
-                    Full Name <span className="text-red">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="name"
-                    id="name"
-                    placeholder="Enter your full name"
-                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  />
-                </div>
-
-                <div className="mb-5">
-                  <label htmlFor="email" className="block mb-2.5">
-                    Email Address <span className="text-red">*</span>
-                  </label>
-
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    placeholder="Enter your email address"
-                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  />
-                </div>
-
-                <div className="mb-5">
-                  <label htmlFor="password" className="block mb-2.5">
-                    Password <span className="text-red">*</span>
-                  </label>
-
-                  <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    placeholder="Enter your password"
-                    autoComplete="on"
-                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  />
-                </div>
-
-                <div className="mb-5.5">
-                  <label htmlFor="re-type-password" className="block mb-2.5">
-                    Re-type Password <span className="text-red">*</span>
-                  </label>
-
-                  <input
-                    type="password"
-                    name="re-type-password"
-                    id="re-type-password"
-                    placeholder="Re-type your password"
-                    autoComplete="on"
-                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
-                  />
-                </div>
-
+              <form onSubmit={OnSubmit}>
+                <TextField type="text" name = "name" id="name" placeholder="Enter your full name" labelName="Full Name" labelClassName="block mb-2.5"/>
+                {errors.name && <p className="text-red">{errors.name[0]}</p>}
+                <TextField type="email" name="email" id="email" placeholder="Enter your email address" labelName="Email Address" labelClassName="block mb-2.5"/>
+                {errors.email && <p className="text-red">{errors.email[0]}</p>}
+                <TextField type = "password" name="password" id="password" placeholder="Enter your password" labelName="Password" labelClassName="block mb-2.5"/>
+                {errors.password && <p className="text-red">{errors.password[0]}</p>}
+                <TextField type = "password" name="re-type-password" id="re-type-password" placeholder="Re-type your password" labelName="Re-type Password" labelClassName="block mb-2.5"/>
+                {errors.password && <p className="text-red">{errors.password[0]}</p>}
                 <button
                   type="submit"
                   className="w-full flex justify-center font-medium text-white bg-dark py-3 px-6 rounded-lg ease-out duration-200 hover:bg-blue mt-7.5"
